@@ -18,7 +18,7 @@ A robust PHP package for interacting with Anthropic's Claude 3 API, supporting b
 You can install the package via composer:
 
 ```bash
-composer require claude-php/claude-3-api
+composer require eitqan-hub/claude-3-api
 ```
 
 ## Usage
@@ -447,6 +447,10 @@ If you encounter any problems or have any questions, please open an issue in the
 This package is not officially associated with Anthropic. Make sure to comply with Anthropic's terms of service when using this package.
 
 ## Recent Changes
+
+### Version 0.1.24
+
+- Added support for php 8.4
 
 ### Version 0.1.23
 
