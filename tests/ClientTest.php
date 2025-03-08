@@ -2,6 +2,8 @@
 
 namespace Claude\Claude3Api\Tests;
 
+use Claude\Claude3Api\Exceptions\ApiException;
+use GuzzleHttp\Exception\GuzzleException;
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Client as HttpClient;
 use GuzzleHttp\Handler\MockHandler;
@@ -16,6 +18,7 @@ use Claude\Claude3Api\Models\Content\TextContent;
 use Claude\Claude3Api\Models\Tool;
 use Claude\Claude3Api\Requests\MessageRequest;
 use Claude\Claude3Api\Responses\MessageResponse;
+use ReflectionClass;
 
 class ClientTest extends TestCase
 {
@@ -34,12 +37,15 @@ class ClientTest extends TestCase
         $this->client = new Client($this->config);
 
         // Use reflection to set the mock HTTP client
-        $reflection = new \ReflectionClass($this->client);
+        $reflection = new ReflectionClass($this->client);
         $httpClientProperty = $reflection->getProperty('httpClient');
-        $httpClientProperty->setAccessible(true);
         $httpClientProperty->setValue($this->client, $this->httpClient);
     }
 
+    /**
+     * @throws ApiException
+     * @throws GuzzleException
+     */
     public function testSendMessage()
     {
         $responseBody = json_encode([
@@ -76,6 +82,10 @@ class ClientTest extends TestCase
         $this->assertEquals(['input_tokens' => 10, 'output_tokens' => 20], $response->getUsage());
     }
 
+    /**
+     * @throws ApiException
+     * @throws GuzzleException
+     */
     public function testStreamMessage()
     {
         $streamedEvents = [
@@ -149,6 +159,10 @@ class ClientTest extends TestCase
         $this->assertEquals('get_weather', $requestArray['tools'][0]['name']);
     }
 
+    /**
+     * @throws ApiException
+     * @throws GuzzleException
+     */
     public function testSendMessageWithImage()
     {
         $imageUrl = "https://upload.wikimedia.org/wikipedia/commons/a/a7/Camponotus_flavomarginatus_ant.jpg";
@@ -192,6 +206,9 @@ class ClientTest extends TestCase
         $this->assertEquals(['input_tokens' => 100, 'output_tokens' => 80], $response->getUsage());
     }
 
+    /**
+     * @throws \ReflectionException
+     */
     public function testBetaFeaturesInHeader()
     {
         // Enable beta feature
@@ -201,15 +218,13 @@ class ClientTest extends TestCase
         $client = new Client($this->config);
 
         // Use reflection to access private httpClient
-        $reflection = new \ReflectionClass($client);
+        $reflection = new ReflectionClass($client);
         $httpClientProperty = $reflection->getProperty('httpClient');
-        $httpClientProperty->setAccessible(true);
         $httpClient = $httpClientProperty->getValue($client);
 
         // Extract headers from the httpClient
-        $reflectionHttpClient = new \ReflectionClass($httpClient);
+        $reflectionHttpClient = new ReflectionClass($httpClient);
         $configProperty = $reflectionHttpClient->getProperty('config');
-        $configProperty->setAccessible(true);
         $clientConfig = $configProperty->getValue($httpClient);
 
         $headers = $clientConfig['headers'];

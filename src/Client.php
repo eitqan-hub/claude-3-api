@@ -3,6 +3,7 @@
 namespace Claude\Claude3Api;
 
 use GuzzleHttp\Client as HttpClient;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Claude\Claude3Api\Exceptions\ApiException;
 use Claude\Claude3Api\Models\Content\ImageContent;
@@ -15,7 +16,7 @@ class Client
 {
     private HttpClient $httpClient;
 
-    public function __construct(private Config $config)
+    public function __construct(private readonly Config $config)
     {
         $headers = [
             'Content-Type' => 'application/json',
@@ -79,12 +80,22 @@ class Client
         return $messageRequest;
     }
 
+    /**
+     * @throws ApiException
+     */
+    /**
+     * @throws GuzzleException|ApiException
+     */
     public function chat(array|string $request): MessageResponse
     {
         $messageRequest = $this->formatRequest($request);
         return $this->sendMessage($messageRequest);
     }
 
+    /**
+     * @throws ApiException
+     * @throws GuzzleException
+     */
     public function sendMessage(MessageRequest|array $request): MessageResponse
     {
         try {
@@ -101,6 +112,10 @@ class Client
         }
     }
 
+    /**
+     * @throws ApiException
+     * @throws GuzzleException
+     */
     public function streamMessage($request, callable $callback)
     {
         if (!$request instanceof MessageRequest) {
@@ -148,8 +163,6 @@ class Client
                         case 'content_block_start':
                         case 'content_block_delta':
                         case 'message_delta':
-                            $callback($data);
-                            break;
                         default:
                             $callback($data);
                             break;
@@ -163,6 +176,10 @@ class Client
         }
     }
 
+    /**
+     * @throws ApiException
+     * @throws GuzzleException
+     */
     public function sendMessageWithImage(string $imagePath, string $prompt): MessageResponse
     {
         $imageData = file_get_contents($imagePath);
@@ -192,16 +209,16 @@ class Client
             ];
 
             foreach (explode("\n", $line) as $part) {
-                if (strpos($part, 'event:') === 0) {
+                if (str_starts_with($part, 'event:')) {
                     $event['event'] = trim(substr($part, 6));
-                } elseif (strpos($part, 'data:') === 0) {
+                } elseif (str_starts_with($part, 'data:')) {
                     $event['data'] = trim(substr($part, 5));
                 }
             }
 
             if (!empty($event['event']) && !empty($event['data'])) {
                 $events[] = $event;
-            } elseif (strpos($part, 'data:') === 0) {
+            } elseif (str_starts_with($part, 'data:')) {
                 $event['data'] = trim(substr($part, 5));
                 if (empty($event['event']) && $event['data'] !== '[DONE]') {
                     $event['event'] = 'message_other';

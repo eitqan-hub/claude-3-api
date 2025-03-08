@@ -22,7 +22,7 @@ class MessageRequest
     private ?int $topK = null;
     private ?float $topP = null;
 
-    public function __construct(Config $config = null)
+    public function __construct(?Config $config = null)
     {
         if ($config) {
             $this->model = $config->getModel() ?? Config::DEFAULT_MODEL;
