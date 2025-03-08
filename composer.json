@@ -1,5 +1,5 @@
 {
-  "name": "claude-php/claude-3-api",
+  "name": "eitqan-hub/claude-3-api",
   "version": "0.1.23",
   "description": "A PHP package for the Claude 3.7 Sonnet API",
   "type": "library",
